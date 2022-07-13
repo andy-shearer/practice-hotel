@@ -9,7 +9,7 @@ import java.util.Map;
  */
 public class BookingSystem {
     private final int numRooms;
-    protected Map<Integer, List<Booking>> bookings = new HashMap<>();
+    protected Map<Integer, List<Booking>> bookings = new HashMap<>(); // Hashmap of room number to booking list
 
     /**
      * Constructor for booking system
@@ -19,6 +19,13 @@ public class BookingSystem {
         this.numRooms = numRooms;
     }
 
+    /**
+     * Add a new booking into the system, allocating the first available room with availability.
+     * @param name of guest
+     * @param arrive date of arrival
+     * @param checkOut date of checkout
+     * @return true if booking was successful, otherwise false
+     */
     public boolean createBooking(String name, Date arrive, Date checkOut) {
         for(int i = 1; i <= numRooms; i++) {
             List<Booking> roomBookings = bookings.get(i);
@@ -30,7 +37,7 @@ public class BookingSystem {
                 return true;
             } else if(hasNoClashes(roomBookings, arrive, checkOut)){
                 // Existing bookings for this room don't clash with the new booking
-                roomBookings.add(new Booking(name, i, arrive, checkOut)); // TODO confirm this updates the original hashmap by reference
+                roomBookings.add(new Booking(name, i, arrive, checkOut));
                 return true;
             }
         }
@@ -56,6 +63,11 @@ public class BookingSystem {
         return avail;
     }
 
+    /**
+     * Lookup the bookings that have been created for a guest.
+     * @param guestName to lookup
+     * @return list of bookings
+     */
     public List<Booking> bookingsForGuest(String guestName) {
         List<Booking> guestBookings = new ArrayList<>();
 
