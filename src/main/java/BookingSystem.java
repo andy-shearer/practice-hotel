@@ -32,17 +32,16 @@ public class BookingSystem {
             synchronized (this) {
                 List<Booking> roomBookings = bookings.get(i);
                 if (roomBookings == null || roomBookings.isEmpty()) {
-                    // Room is free, so add the booking
+                    // Room has no bookings, so add the new booking
                     List<Booking> newBooking = new ArrayList<>();
                     newBooking.add(new Booking(name, i, arrive, checkOut));
                     bookings.put(i, newBooking);
                     return true;
                 } else if (hasNoClashes(roomBookings, arrive, checkOut)) {
-                    // Existing bookings for this room don't clash with the new booking
                     roomBookings.add(new Booking(name, i, arrive, checkOut));
                     return true;
                 }
-            } // End synchronized block
+            }
         }
 
         return false;
@@ -85,11 +84,8 @@ public class BookingSystem {
     }
 
     /**
-     * Helper function to iterate through the provided list of bookings checking whether any of them intersect
-     * with the provided arrival/departure dates. The conditions which cause a 'clash':
-     *  - Arrival date falls within the dates on existing booking
-     *  - Checkout date falls within the dates on existing booking
-     *
+     * Checks if the provided arrival/departure dates coincide with any of the arrival/departure dates on
+     * the existing bookings.
      * @param existingBookings {@link List} of existing bookings to search
      * @param arrive {@link Date} of arrival
      * @param checkOut {@link Date} of departure
@@ -103,10 +99,11 @@ public class BookingSystem {
         for (Booking existingBooking : existingBookings) {
             Date existingArr = existingBooking.getArrival();
             Date existingCheckOut = existingBooking.getCheckOut();
-            if (
-                    (arrive.after(existingArr) && arrive.before(existingCheckOut)) ||
-                    (checkOut.after(existingArr) && checkOut.before(existingCheckOut))
-            ) {
+
+            boolean arrivalClash = arrive.after(existingArr) && arrive.before(existingCheckOut);
+            boolean checkOutClash = checkOut.after(existingArr) && checkOut.before(existingCheckOut);
+
+            if (arrivalClash || checkOutClash) {
                 return false;
             }
         }
@@ -118,7 +115,7 @@ public class BookingSystem {
      * Check how many rooms (total) are configured in the booking system
      * @return total number of rooms
      */
-    public int getTotalRooms() {
+    protected int getTotalRooms() {
         return numRooms;
     }
 }

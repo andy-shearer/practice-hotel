@@ -19,8 +19,8 @@ public class BookingSystemTest {
     private static final Date DEFAULT_ARRIVAL = new Date();
     private static final Date DEFAULT_CHECKOUT = Date.from(DEFAULT_ARRIVAL.toInstant().plus(3, ChronoUnit.DAYS));
     private static final String SECOND_NAME = "John Doe";
-    public static final Date SECOND_ARRIVAL = Date.from(DEFAULT_ARRIVAL.toInstant().plus(7, ChronoUnit.DAYS));
-    public static final Date SECOND_CHECKOUT = Date.from(SECOND_ARRIVAL.toInstant().plus(3, ChronoUnit.DAYS));
+    private static final Date SECOND_ARRIVAL = Date.from(DEFAULT_ARRIVAL.toInstant().plus(7, ChronoUnit.DAYS));
+    private static final Date SECOND_CHECKOUT = Date.from(SECOND_ARRIVAL.toInstant().plus(3, ChronoUnit.DAYS));
 
 
     @Before
