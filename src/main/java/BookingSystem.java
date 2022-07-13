@@ -20,7 +20,8 @@ public class BookingSystem {
     }
 
     /**
-     * Add a new booking into the system, allocating the first available room with availability.
+     * Add a new booking into the system, allocating the first available room to the booking. Adding a booking is
+     * synchronized to ensure multiple threads can't create overlapping bookings.
      * @param name of guest
      * @param arrive date of arrival
      * @param checkOut date of checkout
@@ -28,18 +29,20 @@ public class BookingSystem {
      */
     public boolean createBooking(String name, Date arrive, Date checkOut) {
         for(int i = 1; i <= numRooms; i++) {
-            List<Booking> roomBookings = bookings.get(i);
-            if(roomBookings == null || roomBookings.isEmpty()) {
-                // Room is free, so add the booking
-                List<Booking> newBooking = new ArrayList<>();
-                newBooking.add(new Booking(name, i, arrive, checkOut));
-                bookings.put(i, newBooking);
-                return true;
-            } else if(hasNoClashes(roomBookings, arrive, checkOut)){
-                // Existing bookings for this room don't clash with the new booking
-                roomBookings.add(new Booking(name, i, arrive, checkOut));
-                return true;
-            }
+            synchronized (this) {
+                List<Booking> roomBookings = bookings.get(i);
+                if (roomBookings == null || roomBookings.isEmpty()) {
+                    // Room is free, so add the booking
+                    List<Booking> newBooking = new ArrayList<>();
+                    newBooking.add(new Booking(name, i, arrive, checkOut));
+                    bookings.put(i, newBooking);
+                    return true;
+                } else if (hasNoClashes(roomBookings, arrive, checkOut)) {
+                    // Existing bookings for this room don't clash with the new booking
+                    roomBookings.add(new Booking(name, i, arrive, checkOut));
+                    return true;
+                }
+            } // End synchronized block
         }
 
         return false;
@@ -53,9 +56,9 @@ public class BookingSystem {
     public List<Integer> getAvailableRooms(Date date) {
         List<Integer> avail = new ArrayList<>();
 
-        for(int i = 1; i <= numRooms; i++) {
+        for (int i = 1; i <= numRooms; i++) {
             List<Booking> roomBookings = bookings.get(i);
-            if(hasNoClashes(roomBookings, date, date)) {
+            if (hasNoClashes(roomBookings, date, date)) {
                 avail.add(i);
             }
         }
@@ -71,7 +74,7 @@ public class BookingSystem {
     public List<Booking> bookingsForGuest(String guestName) {
         List<Booking> guestBookings = new ArrayList<>();
 
-        for(List<Booking> roomBookings : bookings.values()) {
+        for (List<Booking> roomBookings : bookings.values()) {
             List<Booking> matched = roomBookings.stream()
                     .filter(booking -> booking.getGuestName().matches(guestName))
                     .toList();
@@ -82,36 +85,28 @@ public class BookingSystem {
     }
 
     /**
-     * Check how many rooms (total) are configured in the booking system
-     * @return total number of rooms
-     */
-    public int getTotalRooms() {
-        return numRooms;
-    }
-
-    /**
      * Helper function to iterate through the provided list of bookings checking whether any of them intersect
      * with the provided arrival/departure dates. The conditions which cause a 'clash':
-     *  - Arrival date falls within the dates an existing booking
-     *  - Checkout date falls within the dates an existing booking
+     *  - Arrival date falls within the dates on existing booking
+     *  - Checkout date falls within the dates on existing booking
      *
      * @param existingBookings {@link List} of existing bookings to search
      * @param arrive {@link Date} of arrival
      * @param checkOut {@link Date} of departure
-     * @return true if the dates intersect with any booking in the provided list, otherwise false
+     * @return true if the dates do not intersect with any booking in the provided list
      */
     private boolean hasNoClashes(List<Booking> existingBookings, Date arrive, Date checkOut) {
-        if(existingBookings == null || existingBookings.isEmpty()) {
+        if (existingBookings == null || existingBookings.isEmpty()) {
             return true;
         }
 
-        for(Booking existingBooking : existingBookings) {
+        for (Booking existingBooking : existingBookings) {
             Date existingArr = existingBooking.getArrival();
             Date existingCheckOut = existingBooking.getCheckOut();
-            if(
-                (arrive.after(existingArr) && arrive.before(existingCheckOut)) ||
-                (checkOut.after(existingArr) && checkOut.before(existingCheckOut))
-            ){
+            if (
+                    (arrive.after(existingArr) && arrive.before(existingCheckOut)) ||
+                    (checkOut.after(existingArr) && checkOut.before(existingCheckOut))
+            ) {
                 return false;
             }
         }
@@ -119,4 +114,11 @@ public class BookingSystem {
         return true;
     }
 
+    /**
+     * Check how many rooms (total) are configured in the booking system
+     * @return total number of rooms
+     */
+    public int getTotalRooms() {
+        return numRooms;
+    }
 }

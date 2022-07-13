@@ -1,5 +1,8 @@
 import java.util.Date;
 
+/**
+ * POJO representing a booking in the {@link BookingSystem}
+ */
 public class Booking {
     private final String guestName;
     private final int roomNo;
